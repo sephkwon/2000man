@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>2000만 전역 설계</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=IBM+Plex+Sans+KR:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* layout: one narrow column, three numbered steps (복무 → 전역하는 날 → 65세), each step = controls left / result right, stacking on phones */
+:root{
+  --paper:#f2f4f3; --card:#fcfcfb; --ink:#14202b; --ink-2:#4a5560; --muted:#7f8890;
+  --line:#dfe3e1; --axis:#c2c8c6; --mark:#ffd84a; --mark-ink:#14202b; --focus:#14202b;
+  --s1:#2a78d6; --s2:#eb6834; --s3:#1baf7a;
+  --font-display:"Black Han Sans","IBM Plex Sans KR",system-ui,sans-serif;
+  --font-body:"IBM Plex Sans KR",system-ui,-apple-system,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --paper:#0e1317; --card:#171d22; --ink:#eef0ee; --ink-2:#bcc3c6; --muted:#8a9399;
+    --line:#283038; --axis:#3a444c; --mark:#6a5200; --mark-ink:#fff3c4; --focus:#eef0ee;
+    --s1:#3987e5; --s2:#d95926; --s3:#199e70;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --paper:#0e1317; --card:#171d22; --ink:#eef0ee; --ink-2:#bcc3c6; --muted:#8a9399;
+  --line:#283038; --axis:#3a444c; --mark:#6a5200; --mark-ink:#fff3c4; --focus:#eef0ee;
+  --s1:#3987e5; --s2:#d95926; --s3:#199e70;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--paper);color:var(--ink);font-family:var(--font-body);font-size:16px;line-height:1.6;-webkit-font-smoothing:antialiased}
+.wrap{max-width:860px;margin:0 auto;padding:40px 20px 64px;display:flex;flex-direction:column;gap:28px}
+.nav{display:flex;gap:6px}
+.nav a{font-size:15px;font-weight:600;color:var(--ink-2);text-decoration:none;padding:7px 16px;border-radius:999px;border:1px solid var(--axis)}
+.nav a[aria-current=page]{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+header{display:flex;flex-direction:column;gap:10px}
+.brand{font-family:var(--font-display);font-size:56px;line-height:1;letter-spacing:-0.01em;margin:0}
+.lede{font-size:20px;font-weight:500;margin:0;text-wrap:balance}
+.sub{color:var(--ink-2);margin:0;max-width:34em}
+mark{background:var(--mark);color:var(--mark-ink);padding:0 .18em;border-radius:3px}
+section{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:24px;display:flex;flex-direction:column;gap:20px}
+.step{display:flex;align-items:baseline;gap:12px}
+.step b{font-family:var(--font-display);font-weight:400;font-size:22px;color:var(--muted)}
+.step h2{margin:0;font-size:22px;font-weight:600}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:24px}
+@media (max-width:640px){.grid{grid-template-columns:1fr}.brand{font-size:44px}section{padding:18px}}
+.fields{display:flex;flex-direction:column;gap:16px}
+.field{display:flex;flex-direction:column;gap:6px}
+.field label,.field .lab{font-size:14px;color:var(--ink-2);font-weight:500;display:flex;justify-content:space-between;gap:8px}
+.field output{color:var(--ink);font-weight:600;font-variant-numeric:tabular-nums}
+input[type=date],input[type=number]{font:inherit;color:var(--ink);background:var(--paper);border:1px solid var(--axis);border-radius:8px;padding:9px 10px;width:100%}
+input[type=range]{width:100%;accent-color:var(--ink);height:28px;margin:0}
+:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+.seg{display:grid;grid-template-columns:repeat(4,1fr);border:1px solid var(--axis);border-radius:8px;overflow:hidden}
+.seg button{font:inherit;font-size:14px;padding:9px 4px;border:0;background:var(--paper);color:var(--ink-2);cursor:pointer;border-left:1px solid var(--axis)}
+.seg button:first-child{border-left:0}
+.seg button[aria-pressed=true]{background:var(--ink);color:var(--paper);font-weight:600}
+.result{display:flex;flex-direction:column;gap:14px;justify-content:center}
+.big{font-family:var(--font-display);font-size:44px;line-height:1.1;margin:0}
+.big small{font-family:var(--font-body);font-size:15px;font-weight:500;color:var(--ink-2);display:block;margin-bottom:4px}
+.kv{display:flex;justify-content:space-between;gap:12px;font-size:15px;border-top:1px solid var(--line);padding-top:8px}
+.kv span:last-child{font-variant-numeric:tabular-nums;font-weight:500}
+.kv .dot{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:8px;background:var(--ink)}
+.kv .dot.b{background:var(--muted)}.kv .dot.c{background:var(--axis)}
+.stack{display:flex;gap:2px;height:14px;border-radius:4px;overflow:hidden}
+.stack i{display:block;height:100%}
+.stack .a{background:var(--ink)}.stack .b{background:var(--muted)}.stack .c{background:var(--axis)}
+.prog{height:8px;background:var(--line);border-radius:4px;overflow:hidden}
+.prog i{display:block;height:100%;background:var(--ink);border-radius:4px}
+.note{font-size:14px;color:var(--ink-2);margin:0}
+.tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+@media (max-width:640px){.tiles{grid-template-columns:1fr}}
+.tile{border:1px solid var(--line);border-radius:10px;padding:14px;display:flex;flex-direction:column;gap:4px;background:var(--paper)}
+.tile .name{font-size:14px;color:var(--ink-2);display:flex;align-items:center;gap:8px}
+.tile .chip{width:10px;height:10px;border-radius:2px;flex:none}
+.tile .val{font-size:24px;font-weight:600;line-height:1.25}
+.tile .x{font-size:13px;color:var(--muted)}
+.toolbar{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.toggle{display:flex;align-items:center;gap:8px;font-size:14px;color:var(--ink-2);cursor:pointer}
+.toggle input{width:18px;height:18px;accent-color:var(--ink)}
+.chart{position:relative}
+.chart svg{display:block;width:100%;height:auto;touch-action:pan-y}
+.tip{position:absolute;pointer-events:none;background:var(--card);border:1px solid var(--axis);border-radius:8px;padding:8px 10px;font-size:13px;line-height:1.5;min-width:150px;box-shadow:0 4px 14px rgba(0,0,0,.12);display:none}
+.tip b{display:block;margin-bottom:2px}
+.tip div{display:flex;justify-content:space-between;gap:12px;font-variant-numeric:tabular-nums}
+.tip i{display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:6px}
+.say{border-left:4px solid var(--mark);padding:4px 0 4px 14px;margin:0;font-size:17px;font-weight:500;text-wrap:pretty}
+.say + .say{margin-top:-6px}
+details{border-top:1px solid var(--line);padding-top:12px}
+summary{cursor:pointer;font-size:14px;font-weight:600;color:var(--ink-2)}
+details > div{margin-top:12px}
+.rates{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+@media (max-width:640px){.rates{grid-template-columns:1fr 1fr}}
+.tw{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:14px;font-variant-numeric:tabular-nums}
+th,td{text-align:right;padding:6px 8px;border-bottom:1px solid var(--line);white-space:nowrap}
+th:first-child,td:first-child{text-align:left}
+th{color:var(--ink-2);font-weight:500}
+footer{font-size:13px;color:var(--muted);display:flex;flex-direction:column;gap:6px}
+footer p{margin:0}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<nav class="nav" aria-label="주 메뉴"><a href="index.html" aria-current="page">계산기</a><a href="posts/index.html">글</a></nav>
+
+<header>
+  <h1 class="brand">2000만</h1>
+  <p class="lede">전역하는 날, 네 손에는 <mark id="hdAmt">2천만 원</mark>이 있다.</p>
+  <p class="sub">그 돈으로 무엇을 할지는 지금부터 정할 수 있다. 숫자를 움직여 보면서 네 40년을 직접 그려 봐라.</p>
+</header>
+
+<section aria-labelledby="h1">
+  <div class="step"><b>1</b><h2 id="h1">복무하는 동안</h2></div>
+  <div class="grid">
+    <div class="fields">
+      <div class="field"><label for="enlist">입대일</label><input type="date" id="enlist" value="2026-10-26"></div>
+      <div class="field"><span class="lab">군종</span>
+        <div class="seg" id="branch" role="group" aria-label="군종">
+          <button type="button" data-v="army" aria-pressed="false">육군 18</button>
+          <button type="button" data-v="marine" aria-pressed="false">해병 18</button>
+          <button type="button" data-v="navy" aria-pressed="false">해군 20</button>
+          <button type="button" data-v="air" aria-pressed="true">공군 21</button>
+        </div>
+      </div>
+      <div class="field"><label for="birth">태어난 해</label><input type="number" id="birth" min="1990" max="2012" value="2005" inputmode="numeric"></div>
+      <div class="field"><label for="pay">매달 적금에 넣는 돈 <output id="payOut"></output></label>
+        <input type="range" id="pay" min="0" max="55" step="5" value="55"></div>
+    </div>
+    <div class="result">
+      <p class="big"><small id="disLabel">전역일</small><span id="disAmt"></span></p>
+      <div class="stack" aria-hidden="true"><i class="a" id="stA"></i><i class="b" id="stB"></i><i class="c" id="stC"></i></div>
+      <div>
+        <div class="kv"><span><i class="dot"></i>내가 넣은 돈</span><span id="kvA"></span></div>
+        <div class="kv"><span><i class="dot b"></i>나라가 얹어 주는 돈</span><span id="kvB"></span></div>
+        <div class="kv"><span><i class="dot c"></i>은행 이자 (연 5%)</span><span id="kvC"></span></div>
+      </div>
+      <div>
+        <div class="prog" aria-hidden="true"><i id="progBar"></i></div>
+        <p class="note" id="progTxt" style="margin-top:6px"></p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section aria-labelledby="h2">
+  <div class="step"><b>2</b><h2 id="h2">전역하는 날</h2></div>
+  <div class="grid">
+    <div class="fields">
+      <div class="field"><label for="spend">그날 꺼내 쓰는 돈 <output id="spendOut"></output></label>
+        <input type="range" id="spend" min="0" max="2000" step="50" value="300"></div>
+      <div class="field"><label for="add">그 뒤로 매달 더 넣는 돈 <output id="addOut"></output></label>
+        <input type="range" id="add" min="0" max="100" step="5" value="20"></div>
+    </div>
+    <div class="result">
+      <p class="big"><small>묻어 두고 출발하는 돈</small><span id="seedAmt"></span></p>
+      <p class="note" id="seedNote"></p>
+    </div>
+  </div>
+</section>
+
+<section aria-labelledby="h3">
+  <div class="step"><b>3</b><h2 id="h3"><span id="h3t">65세까지</span></h2></div>
+  <div class="tiles" id="tiles"></div>
+  <div class="toolbar">
+    <p class="note" id="chartTitle"></p>
+    <label class="toggle" for="real"><input type="checkbox" id="real"> 지금 돈 가치로 보기</label>
+  </div>
+  <div class="chart" id="chart"><svg id="svg" role="img" aria-labelledby="chartTitle"></svg><div class="tip" id="tip"></div></div>
+  <p class="say" id="say1"></p>
+  <p class="say" id="say2"></p>
+
+  <details>
+    <summary>표로 보기</summary>
+    <div class="tw"><table id="tbl"></table></div>
+  </details>
+  <details>
+    <summary>가정 바꾸기</summary>
+    <div class="rates">
+      <div class="field"><label for="rDep">정기예금 %</label><input type="number" id="rDep" step="0.1" min="0" max="20" value="3.5"></div>
+      <div class="field"><label for="rKos">코스피 페이스 %</label><input type="number" id="rKos" step="0.1" min="0" max="20" value="6.0"></div>
+      <div class="field"><label for="rSp">S&amp;P500 페이스 %</label><input type="number" id="rSp" step="0.1" min="0" max="20" value="10.1"></div>
+      <div class="field"><label for="rInf">물가 %</label><input type="number" id="rInf" step="0.1" min="0" max="10" value="2.0"></div>
+    </div>
+  </details>
+</section>
+
+<footer>
+  <p>이 화면은 예측이 아니라 비교다. 같은 돈을 세 가지 속도로 굴렸을 때의 차이를 보여 준다.</p>
+  <p>정기예금 3.5%는 2026년 가을 1년 만기 평균 수준, 코스피 6.0%는 2025년 6월까지 10년 연평균, S&amp;P500 10.1%는 1928년부터 2026년 8월까지 배당을 다시 넣은 달러 기준 연평균이다. 과거의 속도가 앞으로도 이어진다는 보장은 없다.</p>
+  <p>주식은 길을 돌아간다. S&amp;P500도 한때 83% 떨어졌고, 다시 올라오는 데 15년이 넘게 걸린 적이 있다. 세금과 수수료, 환율은 계산에 넣지 않았다.</p>
+  <p>전역일 수령액은 한도(월 55만 원), 매칭지원금 100%, 연 5% 금리를 가정한 추정치다. 실제 금액은 가입 은행 앱에서 확인해라.</p>
+</footer>
+</div>
+
+<script>
+(function(){
+  var SERV={army:18,marine:18,navy:20,air:21};
+  var SERIES=[
+    {k:'dep',name:'정기예금',short:'예금',css:'--s1',inp:'rDep'},
+    {k:'kos',name:'코스피 페이스',short:'코스피',css:'--s2',inp:'rKos'},
+    {k:'sp',name:'S&P500 페이스',short:'S&P500',css:'--s3',inp:'rSp'}
+  ];
+  var $=function(id){return document.getElementById(id)};
+  var branch='air';
+
+  function fmt(man){
+    man=Math.max(0,man);
+    if(man>=10000){
+      var eok=Math.floor(man/10000),rest=Math.round((man%10000)/100)*100;
+      if(rest>=10000){eok+=1;rest=0}
+      return eok+'억'+(rest?' '+rest.toLocaleString('ko-KR')+'만':'')+' 원';
+    }
+    var r=man>=1000?Math.round(man/10)*10:Math.round(man);
+    return r.toLocaleString('ko-KR')+'만 원';
+  }
+  function fmtExact(man){return Math.round(man).toLocaleString('ko-KR')+'만 원'}
+  function ymd(d){return d.getFullYear()+'년 '+(d.getMonth()+1)+'월 '+d.getDate()+'일'}
+  function num(id,def){var v=parseFloat($(id).value);return isFinite(v)?v:def}
+
+  function discharge(start,months){
+    var d=new Date(start.getFullYear(),start.getMonth()+months,start.getDate());
+    d.setDate(d.getDate()-1);return d;
+  }
+  function payout(m,n){
+    var principal=m*n, match=principal, interest=m*n*(n+1)/2*0.05/12;
+    return {principal:principal,match:match,interest:interest,total:principal+match+interest};
+  }
+  function fv(seed,monthly,r,t){
+    var g=Math.pow(1+r,t);
+    if(r===0)return seed+monthly*12*t;
+    var rm=Math.pow(1+r,1/12)-1;
+    return seed*g+monthly*(Math.pow(1+rm,12*t)-1)/rm;
+  }
+
+  function model(){
+    var parts=($('enlist').value||'2026-10-26').split('-');
+    var start=new Date(+parts[0],+parts[1]-1,+parts[2]);
+    if(isNaN(start))start=new Date(2026,9,26);
+    var n=SERV[branch], end=discharge(start,n);
+    var pay=+$('pay').value, p=payout(pay,n);
+    var maxSpend=Math.floor(p.total/50)*50;
+    var sp=$('spend'); sp.max=maxSpend; if(+sp.value>maxSpend)sp.value=maxSpend;
+    var spend=+sp.value, add=+$('add').value;
+    var birth=Math.round(num('birth',2005));
+    var age=Math.min(60,Math.max(18,end.getFullYear()-birth));
+    var T=65-age, inf=num('rInf',2)/100, real=$('real').checked;
+    var seed=p.total-spend;
+    var series=SERIES.map(function(s){
+      var r=num(s.inp,0)/100, pts=[];
+      for(var t=0;t<=T;t++){var v=fv(seed,add,r,t); if(real)v/=Math.pow(1+inf,t); pts.push(v)}
+      return {s:s,r:r,pts:pts,end:pts[T]};
+    });
+    return {start:start,end:end,n:n,pay:pay,p:p,spend:spend,add:add,age:age,T:T,inf:inf,real:real,seed:seed,series:series};
+  }
+
+  function css(v){return getComputedStyle(document.documentElement).getPropertyValue(v).trim()}
+  function el(tag,attrs,text){
+    var e=document.createElementNS('http://www.w3.org/2000/svg',tag);
+    for(var k in attrs)e.setAttribute(k,attrs[k]);
+    if(text!=null)e.textContent=text;return e;
+  }
+  var geo=null;
+
+  function draw(m){
+    var svg=$('svg'), box=$('chart'), W=Math.max(300,box.clientWidth), narrow=W<520;
+    var H=narrow?300:360, L=44, R=narrow?92:128, Tm=14, B=30;
+    svg.setAttribute('viewBox','0 0 '+W+' '+H); svg.setAttribute('width',W); svg.setAttribute('height',H);
+    while(svg.firstChild)svg.removeChild(svg.firstChild);
+    var max=0; m.series.forEach(function(s){max=Math.max(max,s.end,s.pts[0])});
+    var steps=[500,1000,2000,5000,10000,20000,50000,100000,200000,500000,1000000], step=steps[steps.length-1];
+    for(var i=0;i<steps.length;i++){if(max/steps[i]<=5){step=steps[i];break}}
+    var top=Math.ceil(max/step)*step||step;
+    var x=function(t){return L+(W-L-R)*t/m.T}, y=function(v){return Tm+(H-Tm-B)*(1-v/top)};
+    var ink2=css('--ink-2'), muted=css('--muted'), line=css('--line'), axis=css('--axis'), ink=css('--ink'), card=css('--card');
+    for(var v=0;v<=top+1;v+=step){
+      svg.appendChild(el('line',{x1:L,x2:W-R,y1:y(v),y2:y(v),stroke:v===0?axis:line,'stroke-width':1}));
+      var lab=v===0?'0':(v>=10000?(v/10000)+'억':(v/1000)+'천만');
+      svg.appendChild(el('text',{x:L-8,y:y(v)+4,'text-anchor':'end','font-size':12,fill:muted},lab));
+    }
+    var ticks=[0]; for(var a=Math.ceil((m.age+1)/10)*10;a<65;a+=10){if(a-m.age>=3&&65-a>=3)ticks.push(a-m.age)} ticks.push(m.T);
+    ticks.forEach(function(t,i){
+      svg.appendChild(el('text',{x:x(t),y:H-8,'text-anchor':i===0?'start':(i===ticks.length-1?'end':'middle'),'font-size':12,fill:muted},(m.age+t)+'세'));
+    });
+    var ends=[];
+    m.series.forEach(function(s){
+      var c=css(s.s.css), d='';
+      s.pts.forEach(function(v,t){d+=(t?'L':'M')+x(t).toFixed(1)+' '+y(v).toFixed(1)});
+      svg.appendChild(el('path',{d:d,fill:'none',stroke:c,'stroke-width':2,'stroke-linejoin':'round','stroke-linecap':'round'}));
+      svg.appendChild(el('circle',{cx:x(m.T),cy:y(s.end),r:4.5,fill:c,stroke:card,'stroke-width':2}));
+      ends.push({s:s,y:y(s.end)});
+    });
+    ends.sort(function(a,b){return b.y-a.y});
+    var prev=H-B+8;
+    ends.forEach(function(e){
+      var ly=Math.min(e.y+4,prev-30); prev=ly;
+      svg.appendChild(el('text',{x:W-R+12,y:ly-6,'font-size':12,fill:ink2},e.s.s.short));
+      svg.appendChild(el('text',{x:W-R+12,y:ly+9,'font-size':13,'font-weight':600,fill:ink},fmt(e.s.end).replace(' 원','')));
+    });
+    var cross=el('line',{y1:Tm,y2:H-B,stroke:axis,'stroke-width':1,visibility:'hidden'}); svg.appendChild(cross);
+    var dots=m.series.map(function(s){var d=el('circle',{r:4.5,fill:css(s.s.css),stroke:card,'stroke-width':2,visibility:'hidden'});svg.appendChild(d);return d});
+    geo={m:m,x:x,y:y,L:L,R:R,W:W,cross:cross,dots:dots};
+  }
+
+  function hover(evt){
+    if(!geo)return;
+    var box=$('chart').getBoundingClientRect(), px=(evt.touches?evt.touches[0].clientX:evt.clientX)-box.left;
+    var m=geo.m, t=Math.round((px-geo.L)/(geo.W-geo.L-geo.R)*m.T); t=Math.max(0,Math.min(m.T,t));
+    var cx=geo.x(t); geo.cross.setAttribute('x1',cx); geo.cross.setAttribute('x2',cx); geo.cross.setAttribute('visibility','visible');
+    var tip=$('tip'); while(tip.firstChild)tip.removeChild(tip.firstChild);
+    var h=document.createElement('b'); h.textContent=(m.age+t)+'세'+(t?' · 전역 '+t+'년 뒤':' · 전역하는 날'); tip.appendChild(h);
+    m.series.slice().reverse().forEach(function(s){
+      var row=document.createElement('div'), l=document.createElement('span'), i=document.createElement('i'), r=document.createElement('span');
+      i.style.background=css(s.s.css); l.appendChild(i); l.appendChild(document.createTextNode(s.s.short)); r.textContent=fmt(s.pts[t]);
+      row.appendChild(l); row.appendChild(r); tip.appendChild(row);
+    });
+    m.series.forEach(function(s,i){var d=geo.dots[i];d.setAttribute('cx',cx);d.setAttribute('cy',geo.y(s.pts[t]));d.setAttribute('visibility','visible')});
+    tip.style.display='block';
+    var tw=tip.offsetWidth, left=cx+12; if(left+tw>geo.W)left=cx-12-tw; tip.style.left=Math.max(0,left)+'px'; tip.style.top='8px';
+  }
+  function leave(){ if(!geo)return; $('tip').style.display='none'; geo.cross.setAttribute('visibility','hidden'); geo.dots.forEach(function(d){d.setAttribute('visibility','hidden')}) }
+
+  function render(){
+    var m=model(), p=m.p;
+    $('payOut').textContent=m.pay+'만 원'; $('spendOut').textContent=fmtExact(m.spend); $('addOut').textContent=m.add+'만 원';
+    $('hdAmt').textContent=fmt(p.total);
+    $('disLabel').textContent='전역일 '+ymd(m.end)+'에 받는 돈';
+    $('disAmt').textContent=fmtExact(p.total);
+    $('kvA').textContent=fmtExact(p.principal); $('kvB').textContent=fmtExact(p.match); $('kvC').textContent=fmtExact(p.interest);
+    var tot=p.total||1; $('stA').style.width=(p.principal/tot*100)+'%'; $('stB').style.width=(p.match/tot*100)+'%'; $('stC').style.width=(p.interest/tot*100)+'%';
+    var now=new Date(), day=86400000, all=Math.round((m.end-m.start)/day)+1, done=Math.floor((now-m.start)/day), left=Math.ceil((m.end-now)/day);
+    var pct=Math.max(0,Math.min(100,done/all*100)); $('progBar').style.width=pct+'%';
+    $('progTxt').textContent=done<0?('입대까지 '+(-done)+'일. 복무 '+m.n+'개월'):(left>0?('전역까지 '+left.toLocaleString('ko-KR')+'일 남았다. '+pct.toFixed(1)+'% 지나왔다.'):'전역했다. 이제 다음 장이다.');
+    $('seedAmt').textContent=fmtExact(m.seed);
+    $('seedNote').textContent=(m.spend?fmtExact(m.spend)+'은 지금의 너를 위해 쓰고, ':'한 푼도 꺼내지 않고, ')+(m.add?'매달 '+m.add+'만 원을 더 넣는다.':'더 넣는 돈은 없다.');
+    $('h3t').textContent=m.age+'세에서 65세까지, '+m.T+'년';
+    $('chartTitle').textContent='나이별 자산'+(m.real?' (물가 연 '+(m.inf*100).toFixed(1)+'% 반영, 지금 돈 가치)':' (그때의 금액 그대로)');
+    var put=m.seed+m.add*12*m.T, tiles=$('tiles'); while(tiles.firstChild)tiles.removeChild(tiles.firstChild);
+    m.series.forEach(function(s){
+      var t=document.createElement('div'); t.className='tile';
+      var n=document.createElement('div'); n.className='name'; var c=document.createElement('i'); c.className='chip'; c.style.background=css(s.s.css);
+      n.appendChild(c); n.appendChild(document.createTextNode(s.s.name+' 연 '+(s.r*100).toFixed(1)+'%'));
+      var v=document.createElement('div'); v.className='val'; v.textContent=fmt(s.end);
+      var x=document.createElement('div'); x.className='x'; x.textContent=put>0?('넣은 돈의 '+(s.end/put).toFixed(1)+'배'):'';
+      t.appendChild(n); t.appendChild(v); t.appendChild(x); tiles.appendChild(t);
+    });
+    draw(m);
+    var def=function(v){return m.real?v/Math.pow(1+m.inf,m.T):v};
+    var kos=m.series[1], spx=m.series[2];
+    $('say1').textContent=m.spend
+      ? '오늘 꺼내 쓰는 '+fmtExact(m.spend)+'은 65세의 '+fmt(def(m.spend*Math.pow(1+kos.r,m.T)))+'에서 '+fmt(def(m.spend*Math.pow(1+spx.r,m.T)))+' 사이다. 쓰지 말라는 말이 아니다. 값을 알고 쓰라는 말이다.'
+      : '한 푼도 꺼내지 않는 설계다. 가능하다면 가장 강한 출발이다.';
+    $('say2').textContent='그 돈이 너를 키우는 데 쓰인다면 계산은 달라진다. '+m.age+'세에 수익률이 가장 높은 자산은 너 자신이다.';
+    var tbl=$('tbl'); while(tbl.firstChild)tbl.removeChild(tbl.firstChild);
+    var hr=tbl.insertRow(); ['나이'].concat(m.series.map(function(s){return s.s.name})).forEach(function(h){var th=document.createElement('th');th.textContent=h;hr.appendChild(th)});
+    for(var t=0;t<=m.T;t++){ if(t%5!==0&&t!==m.T)continue; var r=tbl.insertRow(); r.insertCell().textContent=(m.age+t)+'세'; m.series.forEach(function(s){r.insertCell().textContent=fmt(s.pts[t])}) }
+    try{localStorage.setItem('m2000',JSON.stringify({enlist:$('enlist').value,branch:branch,birth:$('birth').value,pay:$('pay').value,spend:$('spend').value,add:$('add').value}))}catch(e){}
+  }
+
+  try{
+    var s=JSON.parse(localStorage.getItem('m2000')||'null');
+    if(s){['enlist','birth','pay','add'].forEach(function(k){if(s[k]!=null)$(k).value=s[k]}); if(SERV[s.branch])branch=s.branch; if(s.spend!=null){$('spend').max=5000;$('spend').value=s.spend}}
+  }catch(e){}
+  function syncSeg(){Array.prototype.forEach.call($('branch').children,function(b){b.setAttribute('aria-pressed',b.dataset.v===branch?'true':'false')})}
+  $('branch').addEventListener('click',function(e){var b=e.target.closest('button');if(!b)return;branch=b.dataset.v;syncSeg();render()});
+  ['enlist','birth','pay','spend','add','real','rDep','rKos','rSp','rInf'].forEach(function(id){$(id).addEventListener('input',render)});
+  var svg=$('svg'); svg.addEventListener('mousemove',hover); svg.addEventListener('mouseleave',leave);
+  svg.addEventListener('touchstart',hover,{passive:true}); svg.addEventListener('touchmove',hover,{passive:true});
+  var rt; window.addEventListener('resize',function(){clearTimeout(rt);rt=setTimeout(render,120)});
+  new MutationObserver(render).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});
+  syncSeg(); render();
+  if(document.fonts&&document.fonts.ready)document.fonts.ready.then(render);
+})();
+</script>
+</body>
+</html>
