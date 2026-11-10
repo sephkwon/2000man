@@ -4,6 +4,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>2000만 전역 설계</title>
+<meta name="description" content="입대일을 넣으면 전역일에 받는 군적금과, 그 돈이 65세에 얼마가 되는지 직접 그려 볼 수 있습니다.">
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-NKD83093FD"></script>
+<script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-NKD83093FD');</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=IBM+Plex+Sans+KR:wght@400;500;600&display=swap" rel="stylesheet">
@@ -195,6 +198,7 @@ footer p{margin:0}
   <p>정기예금 3.5%는 2026년 가을 1년 만기 평균 수준, 코스피 6.0%는 2025년 6월까지 10년 연평균, S&amp;P500 10.1%는 1928년부터 2026년 8월까지 배당을 다시 넣은 달러 기준 연평균이다. 과거의 속도가 앞으로도 이어진다는 보장은 없다.</p>
   <p>주식은 길을 돌아간다. S&amp;P500도 한때 83% 떨어졌고, 다시 올라오는 데 15년이 넘게 걸린 적이 있다. 세금과 수수료, 환율은 계산에 넣지 않았다.</p>
   <p>전역일 수령액은 한도(월 55만 원), 매칭지원금 100%, 연 5% 금리를 가정한 추정치다. 실제 금액은 가입 은행 앱에서 확인해라.</p>
+  <p><a href="privacy.html" style="color:inherit">개인정보 안내</a></p>
 </footer>
 </div>
 
@@ -367,8 +371,11 @@ footer p{margin:0}
     if(s){['enlist','birth','pay','add'].forEach(function(k){if(s[k]!=null)$(k).value=s[k]}); if(SERV[s.branch])branch=s.branch; if(s.spend!=null){$('spend').max=5000;$('spend').value=s.spend}}
   }catch(e){}
   function syncSeg(){Array.prototype.forEach.call($('branch').children,function(b){b.setAttribute('aria-pressed',b.dataset.v===branch?'true':'false')})}
-  $('branch').addEventListener('click',function(e){var b=e.target.closest('button');if(!b)return;branch=b.dataset.v;syncSeg();render()});
-  ['enlist','birth','pay','spend','add','real','rDep','rKos','rSp','rInf'].forEach(function(id){$(id).addEventListener('input',render)});
+  $('branch').addEventListener('click',function(e){var b=e.target.closest('button');if(!b)return;branch=b.dataset.v;track('branch');syncSeg();render()});
+  var used={};
+  function track(id){ if(used[id])return; var first=!Object.keys(used).length; used[id]=1;
+    try{ if(window.gtag){ if(first)gtag('event','calc_start',{control:id}); gtag('event','calc_adjust',{control:id}); if(Object.keys(used).length===3)gtag('event','calc_engaged'); } }catch(e){} }
+  ['enlist','birth','pay','spend','add','real','rDep','rKos','rSp','rInf'].forEach(function(id){$(id).addEventListener('input',function(){track(id);render()})});
   var svg=$('svg'); svg.addEventListener('mousemove',hover); svg.addEventListener('mouseleave',leave);
   svg.addEventListener('touchstart',hover,{passive:true}); svg.addEventListener('touchmove',hover,{passive:true});
   var rt; window.addEventListener('resize',function(){clearTimeout(rt);rt=setTimeout(render,120)});

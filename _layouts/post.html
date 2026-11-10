@@ -8,10 +8,11 @@ layout: default
 {{ content }}
     <div class="cta">
       <p>{{ page.cta | default: "내 입대일과 군종으로 직접 계산해 보세요. 전역일의 돈이 65세에 얼마가 되는지도 볼 수 있습니다." }}</p>
-      <a class="btn" href="{{ '/' | relative_url }}">계산기 열기</a>
+      <a class="btn" href="{{ '/' | relative_url }}" onclick="try{gtag('event','cta_calculator',{post:'{{ page.slug }}'})}catch(e){}">계산기 열기</a>
     </div>
   </article>
   <footer>
     {% for note in page.notes %}<p>{{ note }}</p>
     {% endfor %}{% unless page.notes %}<p>이 사이트의 숫자는 추정과 비교를 위한 것입니다. 실제 금액과 조건은 가입 은행과 국방부·병무청 안내에서 확인하세요.</p>{% endunless %}
+    <p><a href="{{ '/privacy.html' | relative_url }}" style="color:inherit">개인정보 안내</a></p>
   </footer>

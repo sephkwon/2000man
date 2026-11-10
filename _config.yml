@@ -1,6 +1,7 @@
 title: 2000만
 url: https://2000.helloduck.co.kr
 baseurl: ""
+ga_id: G-NKD83093FD
 timezone: Asia/Seoul
 future: true
 markdown: kramdown

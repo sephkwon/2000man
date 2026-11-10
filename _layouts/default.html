@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{% if page.title %}{{ page.title }} | {% endif %}{{ site.title }}</title>
 {% if page.description %}<meta name="description" content="{{ page.description | escape }}">{% endif %}
+{% if site.ga_id %}<script async src="https://www.googletagmanager.com/gtag/js?id={{ site.ga_id }}"></script>
+<script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','{{ site.ga_id }}');</script>{% endif %}
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=IBM+Plex+Sans+KR:wght@400;500;600&display=swap" rel="stylesheet">
@@ -14,7 +16,7 @@
 <div class="wrap">
   <div class="top">
     <a class="brand" href="{{ '/' | relative_url }}">2000만</a>
-    <nav class="nav" aria-label="주 메뉴"><a href="{{ '/' | relative_url }}">계산기</a><a href="{{ '/posts/' | relative_url }}" aria-current="page">글</a></nav>
+    <nav class="nav" aria-label="주 메뉴"><a href="{{ '/' | relative_url }}">계산기</a><a href="{{ '/posts/' | relative_url }}"{% unless page.nav == 'none' %} aria-current="page"{% endunless %}>글</a></nav>
   </div>
 {{ content }}
 </div>
