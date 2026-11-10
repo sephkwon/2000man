@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>2000만 전역 설계</title>
-<meta name="description" content="입대일을 넣으면 전역일에 받는 군적금과, 그 돈이 65세에 얼마가 되는지 직접 그려 볼 수 있습니다.">
+<meta name="description" content="입대일을 넣으면 전역 후 받는 군적금과, 그 돈을 일정한 수익률로 굴렸을 때 65세에 얼마가 될지 직접 그려 볼 수 있습니다.">
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-NKD83093FD"></script>
 <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-NKD83093FD');</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -114,7 +114,7 @@ footer p{margin:0}
 
 <header>
   <h1 class="brand">2000만</h1>
-  <p class="lede">전역하는 날, 네 손에는 <mark id="hdAmt">2천만 원</mark>이 있다.</p>
+  <p class="lede">전역하면, 네 손에는 <mark id="hdAmt">2천만 원</mark>이 있다.</p>
   <p class="sub">그 돈으로 무엇을 할지는 지금부터 정할 수 있다. 숫자를 움직여 보면서 네 40년을 직접 그려 봐라.</p>
 </header>
 
@@ -152,10 +152,10 @@ footer p{margin:0}
 </section>
 
 <section aria-labelledby="h2">
-  <div class="step"><b>2</b><h2 id="h2">전역하는 날</h2></div>
+  <div class="step"><b>2</b><h2 id="h2">돈이 들어오면</h2></div>
   <div class="grid">
     <div class="fields">
-      <div class="field"><label for="spend">그날 꺼내 쓰는 돈 <output id="spendOut"></output></label>
+      <div class="field"><label for="spend">먼저 꺼내 쓰는 돈 <output id="spendOut"></output></label>
         <input type="range" id="spend" min="0" max="2000" step="50" value="300"></div>
       <div class="field"><label for="add">그 뒤로 매달 더 넣는 돈 <output id="addOut"></output></label>
         <input type="range" id="add" min="0" max="100" step="5" value="20"></div>
@@ -197,7 +197,8 @@ footer p{margin:0}
   <p>이 화면은 예측이 아니라 비교다. 같은 돈을 세 가지 속도로 굴렸을 때의 차이를 보여 준다.</p>
   <p>정기예금 3.5%는 2026년 가을 1년 만기 평균 수준, 코스피 6.0%는 2025년 6월까지 10년 연평균, S&amp;P500 10.1%는 1928년부터 2026년 8월까지 배당을 다시 넣은 달러 기준 연평균이다. 과거의 속도가 앞으로도 이어진다는 보장은 없다.</p>
   <p>주식은 길을 돌아간다. S&amp;P500도 한때 83% 떨어졌고, 다시 올라오는 데 15년이 넘게 걸린 적이 있다. 세금과 수수료, 환율은 계산에 넣지 않았다.</p>
-  <p>전역일 수령액은 한도(월 55만 원), 매칭지원금 100%, 연 5% 금리를 가정한 추정치다. 실제 금액은 가입 은행 앱에서 확인해라.</p>
+  <p>수령액은 한도(월 55만 원), 매칭지원금 100%, 연 5% 금리를 가정한 추정치다. 실제 금액은 가입 은행 앱에서 확인해라.</p>
+  <p>돈은 두 번에 나눠 들어온다. 은행 원금과 이자는 전역 후 만기 해지할 때, 나라가 얹어 주는 돈은 그다음 달에 따로 들어온다.</p>
   <p><a href="privacy.html" style="color:inherit">개인정보 안내</a></p>
 </footer>
 </div>
@@ -317,7 +318,7 @@ footer p{margin:0}
     var m=geo.m, t=Math.round((px-geo.L)/(geo.W-geo.L-geo.R)*m.T); t=Math.max(0,Math.min(m.T,t));
     var cx=geo.x(t); geo.cross.setAttribute('x1',cx); geo.cross.setAttribute('x2',cx); geo.cross.setAttribute('visibility','visible');
     var tip=$('tip'); while(tip.firstChild)tip.removeChild(tip.firstChild);
-    var h=document.createElement('b'); h.textContent=(m.age+t)+'세'+(t?' · 전역 '+t+'년 뒤':' · 전역하는 날'); tip.appendChild(h);
+    var h=document.createElement('b'); h.textContent=(m.age+t)+'세'+(t?' · 전역 '+t+'년 뒤':' · 전역한 해'); tip.appendChild(h);
     m.series.slice().reverse().forEach(function(s){
       var row=document.createElement('div'), l=document.createElement('span'), i=document.createElement('i'), r=document.createElement('span');
       i.style.background=css(s.s.css); l.appendChild(i); l.appendChild(document.createTextNode(s.s.short)); r.textContent=fmt(s.pts[t]);
@@ -333,7 +334,7 @@ footer p{margin:0}
     var m=model(), p=m.p;
     $('payOut').textContent=m.pay+'만 원'; $('spendOut').textContent=fmtExact(m.spend); $('addOut').textContent=m.add+'만 원';
     $('hdAmt').textContent=fmt(p.total);
-    $('disLabel').textContent='전역일 '+ymd(m.end)+'에 받는 돈';
+    $('disLabel').textContent='전역일 '+ymd(m.end)+', 만기에 받는 돈';
     $('disAmt').textContent=fmtExact(p.total);
     $('kvA').textContent=fmtExact(p.principal); $('kvB').textContent=fmtExact(p.match); $('kvC').textContent=fmtExact(p.interest);
     var tot=p.total||1; $('stA').style.width=(p.principal/tot*100)+'%'; $('stB').style.width=(p.match/tot*100)+'%'; $('stC').style.width=(p.interest/tot*100)+'%';
