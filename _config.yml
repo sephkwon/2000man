@@ -1,0 +1,9 @@
+title: 2000만
+url: https://2000.helloduck.co.kr
+baseurl: ""
+timezone: Asia/Seoul
+future: true
+markdown: kramdown
+permalink: /posts/:title.html
+exclude:
+  - README.md

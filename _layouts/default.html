@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{% if page.title %}{{ page.title }} | {% endif %}{{ site.title }}</title>
+{% if page.description %}<meta name="description" content="{{ page.description | escape }}">{% endif %}
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=IBM+Plex+Sans+KR:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{{ '/style.css' | relative_url }}">
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <a class="brand" href="{{ '/' | relative_url }}">2000만</a>
+    <nav class="nav" aria-label="주 메뉴"><a href="{{ '/' | relative_url }}">계산기</a><a href="{{ '/posts/' | relative_url }}" aria-current="page">글</a></nav>
+  </div>
+{{ content }}
+</div>
+</body>
+</html>

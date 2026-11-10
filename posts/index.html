@@ -1,48 +1,20 @@
-<!DOCTYPE html>
-<html lang="ko">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>글 | 2000만</title>
-<meta name="description" content="군적금과 전역 뒤의 돈에 대해, 먼저 알아본 것들을 적어 둡니다.">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=IBM+Plex+Sans+KR:wght@400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="../style.css">
-</head>
-<body>
-<div class="wrap">
-  <div class="top">
-    <a class="brand" href="../index.html">2000만</a>
-    <nav class="nav" aria-label="주 메뉴"><a href="../index.html">계산기</a><a href="index.html" aria-current="page">글</a></nav>
-  </div>
-
+---
+layout: default
+title: 글
+description: 군적금과 전역 뒤의 돈에 대해, 먼저 알아본 것들을 적어 둡니다.
+---
   <header>
     <h1>글</h1>
     <p class="lede">군적금과 전역 뒤의 돈에 대해, 먼저 알아본 것들을 적어 둡니다.</p>
   </header>
-
   <ul class="list">
-    <li><a href="military-savings-payout.html">
-      <strong>군적금 만기 수령액, 육군·해군·공군은 각각 얼마일까</strong>
-      <span>월 55만 원을 끝까지 넣으면 육군 약 2,019만 원, 공군 약 2,363만 원입니다.</span>
-      <span class="meta">2026년 11월</span>
+    {% for post in site.posts %}<li><a href="{{ post.url | relative_url }}">
+      <strong>{{ post.title }}</strong>
+      <span>{{ post.summary | default: post.description }}</span>
+      <span class="meta">{{ post.date | date: "%Y년 %-m월" }}</span>
     </a></li>
+    {% endfor %}
   </ul>
-
-  <div>
-    <p class="label">곧 올라올 글</p>
-    <ul class="soon">
-      <li>아들 입대 전에 부모가 챙겨줄 돈 문제 세 가지</li>
-      <li>월 55만 원을 채우려면 은행 두 곳에 나눠 들어야 하는 이유</li>
-      <li>전역 날 2천만 원, 선택지 다섯 가지 비교</li>
-      <li>2천만 원을 예금에 40년 두면 얼마가 되나</li>
-    </ul>
-  </div>
-
   <footer>
     <p>이 사이트의 숫자는 추정과 비교를 위한 것입니다. 실제 금액과 조건은 가입 은행과 국방부·병무청 안내에서 확인하세요.</p>
   </footer>
-</div>
-</body>
-</html>
