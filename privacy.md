@@ -36,7 +36,7 @@ nav: none
 
 ## 문의
 
-〔문의 받을 이메일 주소〕
+[hello@helloduck.co.kr](mailto:hello@helloduck.co.kr)
 
 2026년 11월 10일부터 적용합니다.
 
