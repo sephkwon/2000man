@@ -1,0 +1,140 @@
+---
+layout: default
+title: 복무 중 쌓이는 돈
+description: 입대일과 군종, 월 납입액을 넣으면 복무 기간 동안 매달 얼마가 쌓이는지 한눈에 볼 수 있습니다.
+nav: savings
+---
+<style>
+.sv-controls{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:20px;display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px}
+.sv-controls .field{display:flex;flex-direction:column;gap:6px;min-width:0}
+.sv-controls label,.sv-controls .lab{font-size:14px;color:var(--ink-2);font-weight:500;display:flex;justify-content:space-between;gap:8px}
+.sv-controls output{color:var(--ink);font-weight:600}
+.sv-controls input[type=date]{font:inherit;color:var(--ink);background:var(--paper);border:1px solid var(--axis);border-radius:8px;padding:9px 10px;width:100%}
+.sv-controls input[type=range]{width:100%;accent-color:var(--ink);height:28px;margin:0}
+.seg{display:flex;gap:6px;flex-wrap:wrap}
+.seg button{font:inherit;font-size:14px;font-weight:600;color:var(--ink-2);background:transparent;border:1px solid var(--axis);border-radius:999px;padding:6px 12px;cursor:pointer}
+.seg button[aria-pressed=true]{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.sv-sum{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:20px;display:flex;flex-direction:column;gap:6px}
+.sv-sum .big{font-family:var(--font-display);font-size:40px;line-height:1.1}
+.sv-sum .small{font-size:14px;color:var(--ink-2)}
+.legend{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:14px;color:var(--ink-2)}
+.legend i,.dot{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:6px;background:#2a78d6}
+.legend i.b,.dot.b{background:#eb6834}
+.legend i.c,.dot.c{background:#1baf7a}
+.sv-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
+.sv-row{display:grid;grid-template-columns:5.2em 1fr 6.8em;gap:10px;align-items:center;font-size:14px;font-variant-numeric:tabular-nums}
+.sv-row .m{color:var(--ink-2);line-height:1.2}
+.sv-row .m small{display:block;color:var(--muted);font-size:12px}
+.sv-row .v{text-align:right;font-weight:600;white-space:nowrap}
+.bar{display:flex;height:20px;border-radius:5px;overflow:hidden;background:var(--line)}
+.bar i{display:block;height:100%}
+.bar .a{background:#2a78d6}.bar .b{background:#eb6834}.bar .c{background:#1baf7a}
+.sv-row.hit .m,.sv-row.last .m{color:var(--ink);font-weight:600}
+.sv-row.hit .v{background:var(--mark);color:var(--mark-ink);border-radius:4px;padding:0 4px}
+@media (max-width:480px){.sv-row{grid-template-columns:4.2em 1fr 5.8em;gap:8px}.sv-sum .big{font-size:32px}}
+details summary{cursor:pointer;font-weight:600}
+</style>
+
+<header>
+  <h1>복무 중 쌓이는 돈</h1>
+  <p class="lede">매달 얼마가 쌓여서, 전역하는 날 얼마가 되는지 한 줄씩 봅니다.</p>
+</header>
+
+<div class="sv-controls">
+  <div class="field"><label for="enlist">입대일</label><input type="date" id="enlist" value="2026-10-26"></div>
+  <div class="field"><span class="lab">군종</span>
+    <div class="seg" id="branch" role="group" aria-label="군종">
+      <button type="button" data-v="army" aria-pressed="true">육군 18</button>
+      <button type="button" data-v="marine" aria-pressed="false">해병 18</button>
+      <button type="button" data-v="navy" aria-pressed="false">해군 20</button>
+      <button type="button" data-v="air" aria-pressed="false">공군 21</button>
+    </div>
+  </div>
+  <div class="field"><label for="pay">매달 적금에 넣는 돈 <output id="payOut"></output></label>
+    <input type="range" id="pay" min="0" max="55" step="5" value="55"></div>
+</div>
+
+<div class="sv-sum" aria-live="polite">
+  <span class="small" id="sumLabel">전역일</span>
+  <span class="big" id="sumAmt"></span>
+  <span class="small" id="sumNote"></span>
+</div>
+
+<div class="legend" aria-hidden="true">
+  <span><i></i>내가 넣은 돈</span><span><i class="b"></i>나라가 얹어 주는 돈</span><span><i class="c"></i>은행 이자</span>
+</div>
+
+<ol class="sv-list" id="list"></ol>
+
+<details>
+  <summary>표로 보기</summary>
+  <div class="tw"><table id="tbl"></table></div>
+</details>
+
+<div class="cta">
+  <p>이 돈을 전역 후 굴리면 65세에 얼마가 되는지 계산기에서 볼 수 있습니다.</p>
+  <a class="btn" href="{{ '/' | relative_url }}">계산기로 가기</a>
+</div>
+
+<footer>
+  <p>월 한도 55만 원, 매칭지원금 100%, 연 5% 금리를 가정한 추정치입니다. 실제 금액은 가입 은행 앱에서 확인하세요.</p>
+  <p>나라가 얹어 주는 돈은 전역 다음 달에 따로 들어오지만, 여기서는 쌓이는 흐름을 보기 쉽게 매달 함께 보여 줍니다.</p>
+</footer>
+
+<script>
+(function(){
+  var SERV={army:18,marine:18,navy:20,air:21};
+  var $=function(id){return document.getElementById(id)};
+  var branch='army';
+
+  function fmt(man){
+    man=Math.max(0,man);
+    var r=Math.round(man);
+    if(r>=10000){var e=Math.floor(r/10000),rest=r%10000;return e+'억'+(rest?' '+rest.toLocaleString('ko-KR')+'만':'')+' 원'}
+    return r.toLocaleString('ko-KR')+'만 원';
+  }
+  function fmt1(man){return (Math.round(man*10)/10).toLocaleString('ko-KR')+'만'}
+  function ymd(d){return d.getFullYear()+'년 '+(d.getMonth()+1)+'월 '+d.getDate()+'일'}
+
+  function rows(){
+    var parts=($('enlist').value||'2026-10-26').split('-');
+    var start=new Date(+parts[0],+parts[1]-1,+parts[2]);
+    if(isNaN(start))start=new Date(2026,9,26);
+    var n=SERV[branch], m=+$('pay').value, out=[];
+    for(var k=1;k<=n;k++){
+      var principal=m*k, match=m*k, interest=m*k*(k+1)/2*0.05/12;
+      var d=new Date(start.getFullYear(),start.getMonth()+k-1,1);
+      out.push({k:k,y:d.getFullYear(),mo:d.getMonth()+1,a:principal,b:match,c:interest,t:principal+match+interest});
+    }
+    var end=new Date(start.getFullYear(),start.getMonth()+n,start.getDate());end.setDate(end.getDate()-1);
+    return {rows:out,n:n,m:m,end:end};
+  }
+
+  function render(){
+    var r=rows(), last=r.rows[r.rows.length-1], max=last.t||1;
+    $('payOut').textContent=r.m?r.m+'만 원':'안 넣음';
+    $('sumLabel').textContent=ymd(r.end)+' 전역, '+r.n+'개월 뒤';
+    $('sumAmt').textContent=fmt(last.t);
+    $('sumNote').textContent='내가 넣은 돈 '+fmt(last.a)+' + 나라 '+fmt(last.b)+' + 이자 '+fmt(last.c);
+    var firstHit=null; r.rows.forEach(function(x){if(firstHit===null&&x.t>=1000)firstHit=x.k});
+    var h='',t='<tr><th>달</th><th>넣은 돈</th><th>나라 지원</th><th>이자</th><th>합계</th></tr>';
+    r.rows.forEach(function(x){
+      var cls=(x.k===firstHit?' hit':'')+(x.k===r.n?' last':'');
+      h+='<li class="sv-row'+cls+'"><span class="m">'+x.k+'개월<small>'+x.y+'.'+x.mo+'</small></span>'
+        +'<span class="bar" role="img" aria-label="'+x.k+'개월 합계 '+fmt(x.t)+'" style="width:'+(x.t/max*100)+'%"><i class="a" style="width:'+(x.t?x.a/x.t*100:0)+'%"></i><i class="b" style="width:'+(x.t?x.b/x.t*100:0)+'%"></i><i class="c" style="width:'+(x.t?x.c/x.t*100:0)+'%"></i></span>'
+        +'<span class="v">'+fmt(x.t)+'</span></li>';
+      t+='<tr><td>'+x.k+'개월 ('+x.y+'.'+x.mo+')</td><td>'+fmt1(x.a)+'</td><td>'+fmt1(x.b)+'</td><td>'+fmt1(x.c)+'</td><td><strong>'+fmt1(x.t)+'</strong></td></tr>';
+    });
+    $('list').innerHTML=h; $('tbl').innerHTML=t;
+    if(firstHit)$('sumNote').textContent+=' · '+firstHit+'개월째에 1,000만 원을 넘습니다.';
+    try{var s=JSON.parse(localStorage.getItem('m2000v2')||'{}');s.enlist=$('enlist').value;s.branch=branch;s.pay=$('pay').value;localStorage.setItem('m2000v2',JSON.stringify(s))}catch(e){}
+  }
+  function syncSeg(){Array.prototype.forEach.call($('branch').children,function(b){b.setAttribute('aria-pressed',b.dataset.v===branch?'true':'false')})}
+
+  try{var s=JSON.parse(localStorage.getItem('m2000v2')||'null');
+    if(s){if(s.enlist)$('enlist').value=s.enlist; if(s.pay!=null)$('pay').value=s.pay; if(SERV[s.branch])branch=s.branch}}catch(e){}
+  $('branch').addEventListener('click',function(e){var b=e.target.closest('button');if(!b)return;branch=b.dataset.v;syncSeg();render()});
+  ['enlist','pay'].forEach(function(id){$(id).addEventListener('input',render)});
+  syncSeg(); render();
+})();
+</script>
