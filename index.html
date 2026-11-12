@@ -11,7 +11,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=IBM+Plex+Sans+KR:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
-/* layout: one narrow column, three numbered steps (복무 → 전역하는 날 → 65세), each step = controls left / result right, stacking on phones */
+/* layout: one narrow column. lifetime-value chart first, then two numbered steps (복무 → 돈이 들어오면), each step = controls left / result right, stacking on phones */
 :root{
   --paper:#f2f4f3; --card:#fcfcfb; --ink:#14202b; --ink-2:#4a5560; --muted:#7f8890;
   --line:#dfe3e1; --axis:#c2c8c6; --mark:#ffd84a; --mark-ink:#14202b; --focus:#14202b;
@@ -76,7 +76,7 @@ input[type=range]{width:100%;accent-color:var(--ink);height:28px;margin:0}
 .prog i{display:block;height:100%;background:var(--ink);border-radius:4px}
 .note{font-size:14px;color:var(--ink-2);margin:0}
 .tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
-@media (max-width:640px){.tiles{grid-template-columns:1fr}}
+@media (max-width:640px){.tiles{grid-template-columns:1fr;gap:8px}}
 .tile{border:1px solid var(--line);border-radius:10px;padding:14px;display:flex;flex-direction:column;gap:4px;background:var(--paper)}
 .tile .name{font-size:14px;color:var(--ink-2);display:flex;align-items:center;gap:8px}
 .tile .chip{width:10px;height:10px;border-radius:2px;flex:none}
@@ -105,6 +105,7 @@ th:first-child,td:first-child{text-align:left}
 th{color:var(--ink-2);font-weight:500}
 footer{font-size:13px;color:var(--muted);display:flex;flex-direction:column;gap:6px}
 footer p{margin:0}
+@media (max-width:640px){.tile{flex-direction:row;justify-content:space-between;align-items:center;padding:10px 14px}.tile .name{font-size:13px}.tile .val{font-size:18px;white-space:nowrap}.tile .x{display:none}}
 </style>
 </head>
 <body>
@@ -115,11 +116,36 @@ footer p{margin:0}
 <header>
   <h1 class="brand">2000만</h1>
   <p class="lede">전역하면, 네 손에는 <mark id="hdAmt">2천만 원</mark>이 있다.</p>
-  <p class="sub">그 돈으로 무엇을 할지는 지금부터 정할 수 있다. 숫자를 움직여 보면서 네 40년을 직접 그려 봐라.</p>
 </header>
 
+<section aria-labelledby="h3" id="value">
+  <div class="step"><h2 id="h3">그 돈의 평생 가치는</h2></div>
+  <p class="note" id="h3t"></p>
+  <div class="tiles" id="tiles"></div>
+  <div class="toolbar">
+    <p class="note" id="chartTitle"></p>
+    <label class="toggle" for="real"><input type="checkbox" id="real"> 지금 돈 가치로 보기</label>
+  </div>
+  <div class="chart" id="chart"><svg id="svg" role="img" aria-labelledby="chartTitle"></svg><div class="tip" id="tip"></div></div>
+  <p class="note">아래에서 숫자를 바꾸면 이 그래프가 따라 움직인다.</p>
+
+  <details>
+    <summary>표로 보기</summary>
+    <div class="tw"><table id="tbl"></table></div>
+  </details>
+  <details>
+    <summary>가정 바꾸기</summary>
+    <div class="rates">
+      <div class="field"><label for="rDep">정기예금 %</label><input type="number" id="rDep" step="0.1" min="0" max="20" value="3.5"></div>
+      <div class="field"><label for="rKos">코스피 페이스 %</label><input type="number" id="rKos" step="0.1" min="0" max="20" value="6.0"></div>
+      <div class="field"><label for="rSp">S&amp;P500 페이스 %</label><input type="number" id="rSp" step="0.1" min="0" max="20" value="10.1"></div>
+      <div class="field"><label for="rInf">물가 %</label><input type="number" id="rInf" step="0.1" min="0" max="10" value="2.0"></div>
+    </div>
+  </details>
+</section>
+
 <section aria-labelledby="h1">
-  <div class="step"><b>1</b><h2 id="h1">복무하는 동안</h2></div>
+  <div class="step"><b>1</b><h2 id="h1">복무하는 동안 쌓이는 돈</h2></div>
   <div class="grid">
     <div class="fields">
       <div class="field"><label for="enlist">입대일</label><input type="date" id="enlist" value="2026-10-26"></div>
@@ -156,41 +182,18 @@ footer p{margin:0}
   <div class="grid">
     <div class="fields">
       <div class="field"><label for="spend">먼저 꺼내 쓰는 돈 <output id="spendOut"></output></label>
-        <input type="range" id="spend" min="0" max="2000" step="50" value="300"></div>
+        <input type="range" id="spend" min="0" max="2000" step="50" value="0"></div>
       <div class="field"><label for="add">그 뒤로 매달 더 넣는 돈 <output id="addOut"></output></label>
-        <input type="range" id="add" min="0" max="100" step="5" value="20"></div>
+        <input type="range" id="add" min="0" max="100" step="5" value="0"></div>
     </div>
     <div class="result">
       <p class="big"><small>묻어 두고 출발하는 돈</small><span id="seedAmt"></span></p>
       <p class="note" id="seedNote"></p>
+      <p class="note" id="seedOut"></p>
     </div>
   </div>
-</section>
-
-<section aria-labelledby="h3">
-  <div class="step"><b>3</b><h2 id="h3"><span id="h3t">65세까지</span></h2></div>
-  <div class="tiles" id="tiles"></div>
-  <div class="toolbar">
-    <p class="note" id="chartTitle"></p>
-    <label class="toggle" for="real"><input type="checkbox" id="real"> 지금 돈 가치로 보기</label>
-  </div>
-  <div class="chart" id="chart"><svg id="svg" role="img" aria-labelledby="chartTitle"></svg><div class="tip" id="tip"></div></div>
   <p class="say" id="say1"></p>
   <p class="say" id="say2"></p>
-
-  <details>
-    <summary>표로 보기</summary>
-    <div class="tw"><table id="tbl"></table></div>
-  </details>
-  <details>
-    <summary>가정 바꾸기</summary>
-    <div class="rates">
-      <div class="field"><label for="rDep">정기예금 %</label><input type="number" id="rDep" step="0.1" min="0" max="20" value="3.5"></div>
-      <div class="field"><label for="rKos">코스피 페이스 %</label><input type="number" id="rKos" step="0.1" min="0" max="20" value="6.0"></div>
-      <div class="field"><label for="rSp">S&amp;P500 페이스 %</label><input type="number" id="rSp" step="0.1" min="0" max="20" value="10.1"></div>
-      <div class="field"><label for="rInf">물가 %</label><input type="number" id="rInf" step="0.1" min="0" max="10" value="2.0"></div>
-    </div>
-  </details>
 </section>
 
 <footer>
@@ -288,7 +291,7 @@ footer p{margin:0}
       var lab=v===0?'0':(v>=10000?(v/10000)+'억':(v/1000)+'천만');
       svg.appendChild(el('text',{x:L-8,y:y(v)+4,'text-anchor':'end','font-size':12,fill:muted},lab));
     }
-    var ticks=[0]; for(var a=Math.ceil((m.age+1)/10)*10;a<65;a+=10){if(a-m.age>=3&&65-a>=3)ticks.push(a-m.age)} ticks.push(m.T);
+    var ticks=[0]; var gap=narrow?7:3;for(var a=Math.ceil((m.age+1)/10)*10;a<65;a+=10){if(a-m.age>=gap&&65-a>=gap)ticks.push(a-m.age)} ticks.push(m.T);
     ticks.forEach(function(t,i){
       svg.appendChild(el('text',{x:x(t),y:H-8,'text-anchor':i===0?'start':(i===ticks.length-1?'end':'middle'),'font-size':12,fill:muted},(m.age+t)+'세'));
     });
@@ -333,7 +336,7 @@ footer p{margin:0}
   function render(){
     var m=model(), p=m.p;
     $('payOut').textContent=m.pay+'만 원'; $('spendOut').textContent=fmtExact(m.spend); $('addOut').textContent=m.add+'만 원';
-    $('hdAmt').textContent=fmt(p.total);
+    $('hdAmt').textContent=fmtExact(p.total);
     $('disLabel').textContent='전역일 '+ymd(m.end)+', 만기에 받는 돈';
     $('disAmt').textContent=fmtExact(p.total);
     $('kvA').textContent=fmtExact(p.principal); $('kvB').textContent=fmtExact(p.match); $('kvC').textContent=fmtExact(p.interest);
@@ -343,7 +346,8 @@ footer p{margin:0}
     $('progTxt').textContent=done<0?('입대까지 '+(-done)+'일. 복무 '+m.n+'개월'):(left>0?('전역까지 '+left.toLocaleString('ko-KR')+'일 남았다. '+pct.toFixed(1)+'% 지나왔다.'):'전역했다. 이제 다음 장이다.');
     $('seedAmt').textContent=fmtExact(m.seed);
     $('seedNote').textContent=(m.spend?fmtExact(m.spend)+'은 지금의 너를 위해 쓰고, ':'한 푼도 꺼내지 않고, ')+(m.add?'매달 '+m.add+'만 원을 더 넣는다.':'더 넣는 돈은 없다.');
-    $('h3t').textContent=m.age+'세에서 65세까지, '+m.T+'년';
+    $('h3t').textContent=m.age+'세에서 65세까지 '+m.T+'년, 세 가지 속도로 굴렸을 때'+(m.spend?'. '+fmtExact(m.spend)+'을 먼저 쓰고':'')+(m.add?(m.spend?', ':'. ')+'매달 '+m.add+'만 원을 더 넣는 경우':'')+(m.spend&&!m.add?' 남은 돈 기준':'')+'.';
+    $('seedOut').innerHTML='';$('seedOut').appendChild(document.createTextNode('이대로면 65세에 '+fmt(m.series[0].end)+'(예금)에서 '+fmt(m.series[2].end)+'(S&P500 페이스) 사이다. '));var up=document.createElement('a');up.href='#value';up.textContent='그래프로 보기';up.style.color='inherit';$('seedOut').appendChild(up);
     $('chartTitle').textContent='나이별 자산'+(m.real?' (물가 연 '+(m.inf*100).toFixed(1)+'% 반영, 지금 돈 가치)':' (그때의 금액 그대로)');
     var put=m.seed+m.add*12*m.T, tiles=$('tiles'); while(tiles.firstChild)tiles.removeChild(tiles.firstChild);
     m.series.forEach(function(s){
@@ -364,11 +368,11 @@ footer p{margin:0}
     var tbl=$('tbl'); while(tbl.firstChild)tbl.removeChild(tbl.firstChild);
     var hr=tbl.insertRow(); ['나이'].concat(m.series.map(function(s){return s.s.name})).forEach(function(h){var th=document.createElement('th');th.textContent=h;hr.appendChild(th)});
     for(var t=0;t<=m.T;t++){ if(t%5!==0&&t!==m.T)continue; var r=tbl.insertRow(); r.insertCell().textContent=(m.age+t)+'세'; m.series.forEach(function(s){r.insertCell().textContent=fmt(s.pts[t])}) }
-    try{localStorage.setItem('m2000',JSON.stringify({enlist:$('enlist').value,branch:branch,birth:$('birth').value,pay:$('pay').value,spend:$('spend').value,add:$('add').value}))}catch(e){}
+    try{localStorage.setItem('m2000v2',JSON.stringify({enlist:$('enlist').value,branch:branch,birth:$('birth').value,pay:$('pay').value,spend:$('spend').value,add:$('add').value}))}catch(e){}
   }
 
   try{
-    var s=JSON.parse(localStorage.getItem('m2000')||'null');
+    var s=JSON.parse(localStorage.getItem('m2000v2')||'null');
     if(s){['enlist','birth','pay','add'].forEach(function(k){if(s[k]!=null)$(k).value=s[k]}); if(SERV[s.branch])branch=s.branch; if(s.spend!=null){$('spend').max=5000;$('spend').value=s.spend}}
   }catch(e){}
   function syncSeg(){Array.prototype.forEach.call($('branch').children,function(b){b.setAttribute('aria-pressed',b.dataset.v===branch?'true':'false')})}
