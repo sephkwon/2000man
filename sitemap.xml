@@ -4,7 +4,7 @@ layout: null
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url><loc>{{ site.url }}/</loc></url>
-  <url><loc>{{ site.url }}/posts/</loc></url>
+  <url><loc>{{ site.url }}/posts/</loc>{% if site.posts.first %}<lastmod>{{ site.posts.first.date | date: "%Y-%m-%d" }}</lastmod>{% endif %}</url>
   {% for post in site.posts %}<url><loc>{{ site.url }}{{ post.url }}</loc><lastmod>{{ post.date | date: "%Y-%m-%d" }}</lastmod></url>
   {% endfor %}
 </urlset>
