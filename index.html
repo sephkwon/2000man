@@ -151,10 +151,10 @@ footer p{margin:0}
       <div class="field"><label for="enlist">입대일</label><input type="date" id="enlist" value="2026-10-26"></div>
       <div class="field"><span class="lab">군종</span>
         <div class="seg" id="branch" role="group" aria-label="군종">
-          <button type="button" data-v="army" aria-pressed="false">육군 18</button>
+          <button type="button" data-v="army" aria-pressed="true">육군 18</button>
           <button type="button" data-v="marine" aria-pressed="false">해병 18</button>
           <button type="button" data-v="navy" aria-pressed="false">해군 20</button>
-          <button type="button" data-v="air" aria-pressed="true">공군 21</button>
+          <button type="button" data-v="air" aria-pressed="false">공군 21</button>
         </div>
       </div>
       <div class="field"><label for="birth">태어난 해</label><input type="number" id="birth" min="1990" max="2012" value="2005" inputmode="numeric"></div>
@@ -215,7 +215,7 @@ footer p{margin:0}
     {k:'sp',name:'S&P500 페이스',short:'S&P500',css:'--s3',inp:'rSp'}
   ];
   var $=function(id){return document.getElementById(id)};
-  var branch='air';
+  var branch='army';
 
   function fmt(man){
     man=Math.max(0,man);
