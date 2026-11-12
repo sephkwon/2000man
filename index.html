@@ -9,7 +9,7 @@
 <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-NKD83093FD');</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=IBM+Plex+Sans+KR:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=IBM+Plex+Sans+KR:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 /* layout: one narrow column. lifetime-value chart first, then two numbered steps (복무 → 돈이 들어오면), each step = controls left / result right, stacking on phones */
 :root{
@@ -42,6 +42,7 @@ body{background:var(--paper);color:var(--ink);font-family:var(--font-body);font-
 .nav a[aria-current=page]{background:var(--ink);color:var(--paper);border-color:var(--ink)}
 header{display:flex;flex-direction:column;gap:10px}
 .brand{font-family:var(--font-display);font-size:56px;line-height:1;letter-spacing:-0.01em;margin:0}
+.brand .tag{font-family:var(--font-body);font-weight:700;letter-spacing:-0.02em}
 .lede{font-size:20px;font-weight:500;margin:0;text-wrap:balance}
 .sub{color:var(--ink-2);margin:0;max-width:34em}
 mark{background:var(--mark);color:var(--mark-ink);padding:0 .18em;border-radius:3px}
@@ -114,12 +115,12 @@ footer p{margin:0}
 <nav class="nav" aria-label="주 메뉴"><a href="index.html" aria-current="page">계산기</a><a href="posts/index.html">글</a></nav>
 
 <header>
-  <h1 class="brand">2000만</h1>
+  <h1 class="brand">2000만<span class="tag">: 절대 지켜라, 그리고 굴려라!</span></h1>
   <p class="lede">전역하면, 네 손에는 <mark id="hdAmt">2천만 원</mark>이 있다.</p>
 </header>
 
 <section aria-labelledby="h3" id="value">
-  <div class="step"><h2 id="h3">그 돈의 평생 가치는</h2></div>
+  <div class="step"><h2 id="h3">그 돈의 평생 가치는 생각보다 크다!</h2></div>
   <p class="note" id="h3t"></p>
   <div class="tiles" id="tiles"></div>
   <div class="toolbar">
