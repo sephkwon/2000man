@@ -5,6 +5,7 @@ layout: null
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url><loc>{{ site.url }}/</loc></url>
   <url><loc>{{ site.url }}/posts/</loc>{% if site.posts.first %}<lastmod>{{ site.posts.first.date | date: "%Y-%m-%d" }}</lastmod>{% endif %}</url>
+  <url><loc>{{ site.url }}/privacy.html</loc></url>
   {% for post in site.posts %}<url><loc>{{ site.url }}{{ post.url }}</loc><lastmod>{{ post.date | date: "%Y-%m-%d" }}</lastmod></url>
   {% endfor %}
 </urlset>
