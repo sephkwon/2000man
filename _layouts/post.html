@@ -7,7 +7,7 @@ layout: default
     {% if page.lede %}<p class="lede">{{ page.lede }}</p>{% endif %}
 {{ content }}
     <div class="cta">
-      <p>{{ page.cta | default: "우리 아들들은 군적금으로 얼마를 쌓고 얼마로 불릴 수 있을지 계산기로 확인해 보세요." }}</p>
+      <p>{{ page.cta | default: site.default_cta }}</p>
       <a class="btn" href="{{ '/' | relative_url }}" onclick="try{gtag('event','cta_calculator',{post:'{{ page.slug }}'})}catch(e){}">계산기 열기</a>
     </div>
   </article>

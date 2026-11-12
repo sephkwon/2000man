@@ -8,3 +8,6 @@ markdown: kramdown
 permalink: /posts/:title.html
 exclude:
   - README.md
+
+# 글 맨 아래 계산기 안내 문구. 글에 cta: 가 없으면 이 문구가 나옵니다.
+default_cta: "우리 아들들은 군적금으로 얼마를 쌓고 얼마로 불릴 수 있을지 계산기로 확인해 보세요."
