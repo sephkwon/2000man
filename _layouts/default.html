@@ -16,7 +16,7 @@
 <div class="wrap">
   <div class="top">
     <a class="brand" href="{{ '/' | relative_url }}">2000만</a>
-    <nav class="nav" aria-label="주 메뉴"><a href="{{ '/' | relative_url }}">계산기</a><a href="{{ '/savings.html' | relative_url }}"{% if page.nav == 'savings' %} aria-current="page"{% endif %}>적립표</a><a href="{{ '/posts/' | relative_url }}"{% unless page.nav == 'none' or page.nav == 'savings' %} aria-current="page"{% endunless %}>글</a></nav>
+    <nav class="nav" aria-label="주 메뉴"><a href="{{ '/' | relative_url }}">계산기</a><a href="{{ '/savings.html' | relative_url }}"{% if page.nav == 'savings' %} aria-current="page"{% endif %}>적립표</a><a href="{{ '/posts/' | relative_url }}"{% unless page.nav == 'none' or page.nav == 'savings' or page.nav == 'about' %} aria-current="page"{% endunless %}>글</a><a class="about" href="{{ '/about.html' | relative_url }}"{% if page.nav == 'about' %} aria-current="page"{% endif %}>이 사이트에 대해</a></nav>
   </div>
 {{ content }}
 </div>
